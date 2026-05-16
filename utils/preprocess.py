@@ -33,15 +33,12 @@ def clean_text(text):
 
 def label_from_rating(rating):
     """
-    Converts a numeric star rating (1–5) to a sentiment label.
+    Converts a numeric star rating (1–5) to a binary sentiment label.
       4-5 stars → 'positive'
-      3   stars → 'neutral'
-      1-2 stars → 'negative'
+      1-3 stars → 'negative'
     """
     if rating >= 4:
         return "positive"
-    elif rating == 3:
-        return "neutral"
     else:
         return "negative"
 
@@ -65,7 +62,7 @@ def load_dataset():
         # Check if required columns exist
         if "reviewText" in df.columns and "overall" in df.columns:
             print(f"      Loading from {file_path}...")
-            # Convert rating to sentiment
+            # Convert rating to sentiment (Binary)
             df["sentiment"] = df["overall"].apply(label_from_rating)
             # Rename reviewText to review
             df = df.rename(columns={"reviewText": "review"})
@@ -92,49 +89,17 @@ def _load_synthetic_data():
         ("Excellent product, works perfectly. Very happy with it.", "positive"),
         ("Wonderful! Exceeded my expectations completely.", "positive"),
         ("Love this item! Will definitely buy again.", "positive"),
-        ("Super useful and easy to use. Great value for money.", "positive"),
-        ("Outstanding quality. I am completely satisfied.", "positive"),
-        ("Perfect! Exactly as described. Five stars!", "positive"),
-        ("Really good product. Fast shipping and well packed.", "positive"),
-        ("Fantastic purchase. Works great, looks great too.", "positive"),
-        ("Brilliant product! Arrived on time and works perfectly.", "positive"),
-        ("Very satisfied. Great product for the price.", "positive"),
-        ("Superb quality. Packaging was excellent too.", "positive"),
-        ("Incredible product! Highly recommend to everyone.", "positive"),
-        ("Nice product. Good build quality and solid feel.", "positive"),
 
         # Negative reviews
         ("Terrible product. Broke after just two days of use.", "negative"),
         ("Very disappointed. Does not work as advertised at all.", "negative"),
         ("Worst purchase I have ever made. Total waste of money.", "negative"),
-        ("Poor quality. Stopped working within a week.", "negative"),
-        ("Do not buy this. It is complete garbage.", "negative"),
-        ("Extremely bad experience. Product arrived damaged.", "negative"),
-        ("Horrible product. Returned it immediately.", "negative"),
-        ("Defective item. Customer service was unhelpful.", "negative"),
-        ("Not worth the money at all. Very cheap quality.", "negative"),
-        ("Awful product. Nothing like the pictures shown.", "negative"),
+        ("It was okay, but not what I expected.", "negative"), # Neutral treated as neg
         ("Bad experience. The product smelled weird and broke.", "negative"),
-        ("Waste of time and money. Very poor build.", "negative"),
-        ("Disgusting quality. Fell apart in my hands.", "negative"),
-        ("Never buying from here again. Terrible experience.", "negative"),
-        ("Frustrated and disappointed. Product is unusable.", "negative"),
-
-        # Neutral reviews
-        ("It is okay, nothing special. Does the job I suppose.", "neutral"),
-        ("Average product. Nothing great but nothing terrible.", "neutral"),
-        ("Decent enough for the price. Some good, some bad.", "neutral"),
-        ("Works as expected. Not amazing, not terrible.", "neutral"),
-        ("Mediocre quality. Product is just okay overall.", "neutral"),
-        ("It is fine. Would probably not buy again though.", "neutral"),
-        ("So-so product. Has its pros and cons honestly.", "neutral"),
-        ("Neither good nor bad. It just exists as a product.", "neutral"),
-        ("Passable item. Could be better but not the worst.", "neutral"),
-        ("Regular product. Meets basic needs but nothing more.", "neutral"),
     ]
     
     # Duplicate data for size
-    reviews = reviews * 6
+    reviews = reviews * 20
     np.random.seed(42)
     np.random.shuffle(reviews)
     

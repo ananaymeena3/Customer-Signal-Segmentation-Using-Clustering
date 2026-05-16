@@ -16,7 +16,6 @@ warnings.filterwarnings("ignore")
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.metrics import (
     accuracy_score, classification_report,
@@ -49,39 +48,50 @@ print(f"      Original : {df['review'].iloc[0][:80]}...")
 print(f"      Cleaned  : {df['clean_review'].iloc[0][:80]}...")
 
 # ----------------------------------------------------------
-# STEP 3: Feature Extraction using TF-IDF
+# STEP 3: Train-Test Split (MOVED UP to prevent leakage)
 # ----------------------------------------------------------
-print("\n[3/6] Extracting features using TF-IDF Vectorizer...")
-tfidf = TfidfVectorizer(
-    max_features=5000,   # Use top 5000 words
-    ngram_range=(1, 2),  # Unigrams + Bigrams
-    stop_words="english"
-)
-X = tfidf.fit_transform(df["clean_review"])
+print("\n[3/6] Splitting raw data into Train (80%) and Test (20%)...")
+X_raw = df["clean_review"]
 y = df["sentiment"]
 
-print(f"      Feature matrix shape: {X.shape}")
+X_train_raw, X_test_raw, y_train, y_test = train_test_split(
+    X_raw, y, test_size=0.2, random_state=42, stratify=y
+)
 
 # ----------------------------------------------------------
-# STEP 4: Train-Test Split
+# STEP 4: Feature Extraction (Fitted only on Train)
 # ----------------------------------------------------------
-print("\n[4/6] Splitting data into Train (80%) and Test (20%)...")
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+print("\n[4/6] Extracting features using TF-IDF Vectorizer...")
+
+# Custom stopwords: remove negations from the default list
+from sklearn.feature_extraction import text
+standard_stops = text.ENGLISH_STOP_WORDS
+negation_words = {'not', 'no', 'never', 'neither', 'nor', 'none', 'cannot', 'cant', 'couldnt', 'didnt', 'doesnt', 'dont', 'hadnt', 'hasnt', 'havent', 'isnt', 'mustnt', 'shant', 'shouldnt', 'wasnt', 'werent', 'wont', 'wouldnt'}
+custom_stops = list(set(standard_stops) - negation_words)
+
+tfidf = TfidfVectorizer(
+    max_features=5000,
+    ngram_range=(1, 2),
+    stop_words=custom_stops # Use custom list to keep "not"
 )
+
+# FIT on train, TRANSFORM both (Crucial to avoid leakage)
+X_train = tfidf.fit_transform(X_train_raw)
+X_test = tfidf.transform(X_test_raw)
+
 print(f"      Train samples: {X_train.shape[0]}")
 print(f"      Test samples : {X_test.shape[0]}")
 
 # ----------------------------------------------------------
-# STEP 5: Train Multiple Models and Compare
+# STEP 5: Train Models (Using Class Weight Balancing)
 # ----------------------------------------------------------
-print("\n[5/6] Training models...\n")
+print("\n[5/6] Training models with class balancing...\n")
 
 models = {
-    "Logistic Regression": LogisticRegression(max_iter=200, random_state=42),
-    "Naive Bayes":          MultinomialNB(),
-    "SVM (LinearSVC)":      LinearSVC(random_state=42)
+    "Logistic Regression": LogisticRegression(max_iter=200, random_state=42, class_weight='balanced'),
+    "SVM (LinearSVC)":      LinearSVC(random_state=42, class_weight='balanced')
 }
+
 
 results = {}
 best_acc = 0
