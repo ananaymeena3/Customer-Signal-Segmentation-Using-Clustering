@@ -125,6 +125,21 @@ Open your browser at: http://localhost:8501
 
 ---
 
+## 📊 Results & Visualizations
+
+### Model Comparison
+![Model Comparison](plots/model_comparison.png)
+
+### Sentiment Distribution
+![Sentiment Distribution](plots/sentiment_distribution.png)
+
+### Confusion Matrix
+![Confusion Matrix](plots/confusion_matrix.png)
+
+
+
+---
+
 ## 🛠️ Tech Stack
 
 - Python 3.8+
