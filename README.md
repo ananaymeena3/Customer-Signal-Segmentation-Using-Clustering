@@ -100,10 +100,8 @@ Open your browser at: http://localhost:8501
 
 **Default (no download needed):** Synthetic product reviews included in `utils/preprocess.py`
 
-**Recommended (for submission):** Amazon Product Reviews from Kaggle:
-- URL: https://www.kaggle.com/datasets/bittlingmayer/amazonreviews
-- Download `train.ft.txt`, place in `data/` folder
-- Uncomment Option A in `utils/preprocess.py`
+**Recommended (for submission):** Amazon Product Reviews:
+- URL: [Amazon Reviews](https://github.com/Kunal-Kumar-Das191049/Sentimental-Analysis-of-Amazon-Reviews/blob/master/Code%20and%20Datasets/amazon.csv)
 
 ---
 
