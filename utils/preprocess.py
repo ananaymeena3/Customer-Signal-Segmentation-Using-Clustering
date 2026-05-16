@@ -4,6 +4,7 @@
 # ============================================================
 
 import re
+import os
 import pandas as pd
 import numpy as np
 
@@ -47,26 +48,43 @@ def label_from_rating(rating):
 
 def load_dataset():
     """
-    Loads the sentiment dataset.
-
-    HOW TO USE A REAL DATASET (recommended for submission):
-    -------------------------------------------------------
-    Option A - Amazon Reviews (Kaggle):
-      1. Download from:
-         https://www.kaggle.com/datasets/bittlingmayer/amazonreviews
-      2. Place 'train.ft.txt' in the data/ folder
-      3. Uncomment the Amazon loader block below
-
-    Option B - IMDB Movie Reviews (built-in with sklearn):
-      Uses sklearn's fetch_20newsgroups -- no download needed
-      (already works out of the box for demo)
-
-    Option C - Use the included synthetic sample dataset (default)
-      Works immediately with no downloads
-    -------------------------------------------------------
+    Loads the sentiment dataset from dataset/amazon.csv.
     """
+    # Load the Amazon dataset
+    file_path = "dataset/amazon.csv"
+    
+    if not os.path.exists(file_path):
+        # Fallback to synthetic data if file not found (for safety)
+        print(f"Warning: {file_path} not found. Using synthetic data.")
+        return _load_synthetic_data()
 
-    # ---- Option C: Synthetic sample dataset (default, works immediately) ----
+    try:
+        # Load CSV (it has an unnamed index column at position 0)
+        df = pd.read_csv(file_path)
+        
+        # Check if required columns exist
+        if "reviewText" in df.columns and "overall" in df.columns:
+            print(f"      Loading from {file_path}...")
+            # Convert rating to sentiment
+            df["sentiment"] = df["overall"].apply(label_from_rating)
+            # Rename reviewText to review
+            df = df.rename(columns={"reviewText": "review"})
+            # Select only necessary columns and drop rows with missing reviews
+            df = df[["review", "sentiment"]].dropna(subset=["review"])
+            return df
+        else:
+            print("Warning: CSV missing 'reviewText' or 'overall' columns. Using synthetic.")
+            return _load_synthetic_data()
+            
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return _load_synthetic_data()
+
+
+def _load_synthetic_data():
+    """
+    Internal helper to provide synthetic data as a fallback.
+    """
     reviews = [
         # Positive reviews
         ("This product is absolutely amazing! Best purchase ever.", "positive"),
@@ -114,27 +132,10 @@ def load_dataset():
         ("Passable item. Could be better but not the worst.", "neutral"),
         ("Regular product. Meets basic needs but nothing more.", "neutral"),
     ]
-
-    # Duplicate data to simulate a bigger dataset (for demo purposes)
-    reviews = reviews * 6   # 40 reviews → 240 samples
-
-    # Shuffle for randomness
+    
+    # Duplicate data for size
+    reviews = reviews * 6
     np.random.seed(42)
     np.random.shuffle(reviews)
-
-    df = pd.DataFrame(reviews, columns=["review", "sentiment"])
-    return df
-
-    # ---- Option A: Amazon Reviews (uncomment if you have the file) ----
-    # lines = open("data/train.ft.txt", encoding="utf-8").readlines()[:5000]
-    # records = []
-    # for line in lines:
-    #     label = "positive" if line.startswith("__label__2") else "negative"
-    #     text = line.split(" ", 1)[1].strip()
-    #     records.append((text, label))
-    # return pd.DataFrame(records, columns=["review", "sentiment"])
-
-    # ---- Option B: Load from a CSV file ----
-    # df = pd.read_csv("data/reviews.csv")
-    # df = df.rename(columns={"text": "review", "label": "sentiment"})
-    # return df
+    
+    return pd.DataFrame(reviews, columns=["review", "sentiment"])
