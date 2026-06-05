@@ -43,7 +43,6 @@ sentiment_analysis/
 └── data/                   # Place downloaded datasets here
 ```
 
----
 
 ## ⚙️ Setup Instructions
 
